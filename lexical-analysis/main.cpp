@@ -9,6 +9,7 @@ int main(int argc, char* argv[])
 	analysis(fin);
 
 	fin.close();
+	system("pause");
 	return 0;
 }
 
@@ -86,7 +87,7 @@ void analysis(ifstream &fin)
 				case '=':state = 18; break;
 				case '|':state = 19; break;
 				case '#':state = 20; break;
-				default:state = 21; break;
+				default:state = 23; break;
 				}
 			}
 			break;
@@ -132,7 +133,7 @@ void analysis(ifstream &fin)
 			{
 				state = 5;
 			}
-			else if (is_letter(c))//错误处理///////////////???????????????????其他情况的错误呢？
+			else if (is_letter(c)||c=='_')//错误处理
 			{
 				//跳过输入错误的标识符
 				while (is_letter(c) || is_digit(c) || c == '_')
@@ -180,7 +181,7 @@ void analysis(ifstream &fin)
 			{
 				state = 5;
 			}
-			else if (is_letter(c))//错误处理///////////////???????????????????其他情况的错误呢？
+			else if (is_letter(c) || c == '_')//错误处理
 			{
 				//跳过输入错误的标识符
 				while (is_letter(c) || is_digit(c) || c == '_')
@@ -246,7 +247,7 @@ void analysis(ifstream &fin)
 			{
 				state = 7;
 			}
-			else if (is_letter(c))//错误处理///////////////???????????????????其他情况的错误呢？
+			else if (is_letter(c) || c == '_')//错误处理
 			{
 				//跳过输入错误的标识符
 				while (is_letter(c) || is_digit(c) || c == '_')
@@ -304,7 +305,7 @@ void analysis(ifstream &fin)
 				//识别结果：--
 				table_insert(OPERATOR, 8);
 			}
-			else if (c == '-')
+			else if (c == '>')
 			{
 				state = 0;
 				//识别结果：->
@@ -583,7 +584,7 @@ void analysis(ifstream &fin)
 
 		default:
 			if (c == EOF) { finish = true; break; }
-			error_report(Other_wrong);
+			error_report(OTHER_ERROR);
 			state = 0;
 			break;
 
@@ -592,13 +593,13 @@ void analysis(ifstream &fin)
 
 	if (c == EOF || finish == true)//词法分析完成
 	{
-		cout << "--------------------------------------------------------------------------" << endl
+		cout << "-------------------------------------------------------" << endl
 			<< "词法分析完成" << endl
-			<< "行数:" << line-1 << endl
+			<< "行数:\t\t" << line-1 << endl
 			<< "字符总数:\t" << letter_num << endl
-			<< "标识符:\t" << identifier_table.size() << endl
-			<< "整数:\t" << int_table.size() << endl
-			<< "浮点数:\t" << float_table.size() << endl;
+			<< "标识符:\t\t" << identifier_table.size() << endl
+			<< "整数:\t\t" << int_table.size() << endl
+			<< "浮点数:\t\t" << float_table.size() << endl;
 	}
 
 
@@ -611,16 +612,19 @@ void analysis(ifstream &fin)
 /*打开文件*/
 void openfile(ifstream &fin)
 {
-	//cout << "请输入文件路径" << endl;
+	cout << "请输入文件路径" << endl;
 	string path;
-	//cin >> path;
-	path = "test1.c";
+	cin >> path;
+	//path = "test4.c";
 	//if (argc == 2)
 	//{
 
 	fin.open(path, ios::in);
 	if (!fin)
+	{
 		cerr << "File Open Error" << endl;
+		exit(0);
+	}
 
 	//}
 	//else
@@ -639,7 +643,7 @@ void fill_buffer(ifstream &fin, char* hulf_buf)
 	int len = strlen(temp);//实际读入字符数
 	letter_num += len;
 	strcpy(hulf_buf, temp);
-	hulf_buf[len] = EOF;//在末尾加eof//？？？？？？？？？？？？？？？？？
+	hulf_buf[len] = EOF;//在末尾加eof
 }
 
 char get_char(ifstream &fin)
@@ -725,6 +729,10 @@ void retreat()//向前指针退回一个字符
 		forwardPtr--;//右半区退到左半区
 
 	}
+	if (*forwardPtr == '\n')
+	{
+		line--;//防止换行符被算两次加到line里
+	}
 }
 
 //将识别出的记号添加到记号序列以及表中，同时输出记号序列
@@ -745,29 +753,34 @@ void table_insert(int type, int idx)//参数idx是在表中的下标
 	case IDENTIFIER://普通标识符
 		temp.index = identifier_table.size();
 		identifier_table.push_back(token);//普通标识符加入标识符表
-		cout << "<\t普通标识符，\t" << str << "\t\t" << line << "\t>" << endl;
+		cout << "<\t" << str << "\t\t，普通标识符"<< "\t>" << endl;
 		break;
 	case KEYWORD://关键字
 		temp.index = idx;
-		cout << "<\t关键字，\t" << str << "\t\t" << line << "\t>" << endl;
+		cout << "<\t" << str << "\t\t，关键字" << "\t>" << endl;
+		//cout << "<\t关键字，\t" << str << "\t\t" << line << "\t>" << endl;
 		break;
 	case INTEGER://整数
 		temp.index = int_table.size();
 		int_table.push_back(atoi(token));
-		cout << "<\t整数，\t\t" << str << "\t\t" << line << "\t>" << endl;
+		cout << "<\t" << str << "\t\t，整数" << "\t\t>" << endl;
+		//cout << "<\t整数，\t\t" << str << "\t\t" << line << "\t>" << endl;
 		break;
 	case FLOATDIG://浮点数
 		temp.index = float_table.size();
 		float_table.push_back(atof(token));
-		cout << "<\t浮点数，\t" << str << "\t\t" << line << "\t>" << endl;
+		cout << "<\t" << str << "\t\t，浮点数" << "\t>" << endl;
+		//cout << "<\t浮点数，\t" << str << "\t\t" << line << "\t>" << endl;
 		break;
 	case OPERATOR://操作符
 		temp.index = idx;
-		cout << "<\t操作符，\t" << op[idx] << "\t\t" << line << "\t>" << endl;
+		cout << "<\t" << op[idx] << "\t\t，操作符" << "\t>" << endl;
+		//cout << "<\t操作符，\t" << op[idx] << "\t\t" << line << "\t>" << endl;
 		break;
 	case DELIMITER://界符
 		temp.index = idx;
-		cout << "<\t界符，\t\t" << delimiter[idx] << "\t\t" << line << "\t>" << endl;
+		cout << "<\t" << delimiter[idx] << "\t\t，界符" << "\t\t>" << endl;
+		//cout << "<\t界符，\t\t" << delimiter[idx] << "\t\t" << line << "\t>" << endl;
 		break;
 	default:
 		error_report(TYPE_NOT_EXIST_ERROR);
@@ -782,46 +795,26 @@ void error_report(ErrorCode code)
 	switch (code)
 	{
 	case FLOAT_ERROR:
-		cout
-			<< "错误：浮点数的小数点后的部分不符合词法" << endl
-			<< "行号：" << line << endl
-			;
+		cout << "错误：\t行号：" << line << "\t说明：浮点数的小数点后的部分不符合词法" << endl;
 		break;
 	case EXP_ERROR:
-		cout
-			<< "错误：指数部分不符合词法" << endl
-			<< "行号：" << line << endl
-			;
+		cout << "错误：\t行号：" << line << "\t说明：指数部分不符合词法" << endl;
 		break;
 	case INVALID_CHARACTER:
-		cout
-			<< "错误：出现C语言不支持的字符" << endl
-			<< "行号：" << line << endl
-			;
+		cout << "错误：\t行号：" << line << "\t说明：出现C语言不支持的字符" << endl;
 		break;
 	case INVALID_IDENTIFIER:
-		cout
-			<< "错误：出现以数字开头的标识符，标识符应以字母或下划线开头" << endl
-			<< "行号：" << line << endl
-			;
+		cout << "错误：\t行号：" << line << "\t说明：出现以数字开头的标识符，标识符应以字母或下划线开头" << endl;
 		break;
 	case INVALID_NUMBER:
-		cout
-			<< "错误：常数中出现不合法字符" << endl
-			<< "行号：" << line << endl
-			;
+		cout << "错误：\t行号：" << line << "\t说明：常数中出现不合法字符" << endl;
 		break;
 	case TYPE_NOT_EXIST_ERROR:
-		cout
-			<< "错误：出现C语言不存在的记号" << endl
-			<< "行号：" << line << endl
-			;
+		cout << "错误：\t行号：" << line << "\t说明：出现C语言不存在的记号" << endl;
 		break;
+	case OTHER_ERROR:
 	default:
-		cout
-			<< "错误：出现其他错误" << endl
-			<< "行号：" << line << endl
-			;
+		cout << "错误：\t行号：" << line << "\t说明：出现其他错误" << endl;
 		break;
 	}
 }
