@@ -116,7 +116,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="subfunction.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="header.h" />
